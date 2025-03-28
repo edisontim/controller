@@ -12,17 +12,22 @@ import {
   Button,
   LayoutHeader,
   CreditCardIcon,
+  Card,
+  CardContent,
+  Separator,
+  InfoIcon,
 } from "@cartridge/ui-next";
 import { ErrorAlert } from "@/components/ErrorAlert";
+import { PricingDetails } from "./PurchaseCredits";
 
 type StripeCheckoutProps = {
-  creditsAmount: number;
+  price: PricingDetails;
   onBack: () => void;
   onComplete: () => void;
 };
 
 export default function StripeCheckout({
-  creditsAmount,
+  price,
   onBack,
   onComplete,
 }: StripeCheckoutProps) {
@@ -82,7 +87,6 @@ export default function StripeCheckout({
     <LayoutContainer>
       <LayoutHeader
         title={"Enter Payment Details"}
-        description={"$" + creditsAmount.toFixed(2)}
         icon={<CreditCardIcon variant="solid" size="lg" />}
         onBack={onBack}
       />
@@ -104,7 +108,11 @@ export default function StripeCheckout({
             description={error.message}
           />
         )}
-
+        <CostBreakdown
+          costInCents={price.baseCostInCents}
+          processingFeeInCents={price.processingFeeInCents}
+          totalInCents={price.totalInCents}
+        />
         <Button
           isLoading={isLoading}
           disabled={isSubmitting || !stripe || !elements || isLoading}
@@ -116,3 +124,46 @@ export default function StripeCheckout({
     </LayoutContainer>
   );
 }
+
+type CostBreakdownProps = {
+  costInCents: number;
+  processingFeeInCents: number;
+  totalInCents: number;
+};
+
+const CostBreakdown = ({
+  costInCents,
+  processingFeeInCents,
+  totalInCents,
+}: CostBreakdownProps) => {
+  const formatCurrency = (cents: number) => {
+    return `$${(cents / 100).toFixed(2)}`;
+  };
+
+  return (
+    <Card>
+      <CardContent className="flex flex-col gap-2 border border-background-200 bg-[#181C19] rounded-[4px] text-xs text-foreground-400">
+        <div className="flex justify-between">
+          <div>Cost</div>
+          <div>{formatCurrency(costInCents)}</div>
+        </div>
+
+        <div className="flex justify-between">
+          <div className="flex gap-1">
+            Processing Fee <InfoIcon size="xs" />
+          </div>
+          <div>{formatCurrency(processingFeeInCents)}</div>
+        </div>
+
+        <Separator className="bg-background-200" />
+
+        <div className="flex justify-between text-sm font-medium">
+          <div>Total</div>
+          <div className="text-foreground-100">
+            {formatCurrency(totalInCents)}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
